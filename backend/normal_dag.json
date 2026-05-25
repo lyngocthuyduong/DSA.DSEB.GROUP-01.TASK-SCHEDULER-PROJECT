@@ -1,0 +1,93 @@
+
+[
+{
+"id": "task_1",
+"name": "Requirement Analysis",
+"priority": 9,
+"duration": 60,
+"dependencies": [],
+"status": "PENDING",
+"category": "Planning"
+},
+{
+"id": "task_2",
+"name": "System Design",
+"priority": 8,
+"duration": 90,
+"dependencies": ["task_1"],
+"status": "PENDING",
+"category": "Architecture"
+},
+{
+"id": "task_3",
+"name": "Database Design",
+"priority": 8,
+"duration": 80,
+"dependencies": ["task_2"],
+"status": "PENDING",
+"category": "Database"
+},
+{
+"id": "task_4",
+"name": "Backend API Development",
+"priority": 10,
+"duration": 150,
+"dependencies": ["task_3"],
+"status": "PENDING",
+"category": "Backend"
+},
+{
+"id": "task_5",
+"name": "Frontend UI Development",
+"priority": 7,
+"duration": 120,
+"dependencies": ["task_2"],
+"status": "PENDING",
+"category": "Frontend"
+},
+{
+"id": "task_6",
+"name": "Authentication Integration",
+"priority": 9,
+"duration": 70,
+"dependencies": ["task_4"],
+"status": "PENDING",
+"category": "Backend"
+},
+{
+"id": "task_7",
+"name": "API-Frontend Integration",
+"priority": 8,
+"duration": 60,
+"dependencies": ["task_4", "task_5"],
+"status": "PENDING",
+"category": "Integration"
+},
+{
+"id": "task_8",
+"name": "System Testing",
+"priority": 10,
+"duration": 100,
+"dependencies": ["task_6", "task_7"],
+"status": "PENDING",
+"category": "Testing"
+},
+{
+"id": "task_9",
+"name": "Performance Optimization",
+"priority": 6,
+"duration": 90,
+"dependencies": ["task_8"],
+"status": "PENDING",
+"category": "Optimization"
+},
+{
+"id": "task_10",
+"name": "Deployment",
+"priority": 9,
+"duration": 40,
+"dependencies": ["task_9"],
+"status": "PENDING",
+"category": "DevOps"
+}
+]

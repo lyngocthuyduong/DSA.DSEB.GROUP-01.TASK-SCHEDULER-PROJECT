@@ -1,0 +1,452 @@
+[
+  {
+    "id": "task_1",
+    "name": "Requirement Analysis",
+    "priority": 9,
+    "duration": 60,
+    "dependencies": [],
+    "status": "PENDING",
+    "category": "Planning"
+  },
+  {
+    "id": "task_2",
+    "name": "Stakeholder Meeting",
+    "priority": 7,
+    "duration": 45,
+    "dependencies": [],
+    "status": "PENDING",
+    "category": "Planning"
+  },
+  {
+    "id": "task_3",
+    "name": "System Design",
+    "priority": 10,
+    "duration": 120,
+    "dependencies": ["task_1"],
+    "status": "PENDING",
+    "category": "Architecture"
+  },
+  {
+    "id": "task_4",
+    "name": "Database Schema Design",
+    "priority": 8,
+    "duration": 90,
+    "dependencies": ["task_3"],
+    "status": "PENDING",
+    "category": "Database"
+  },
+  {
+    "id": "task_5",
+    "name": "Authentication Module",
+    "priority": 9,
+    "duration": 80,
+    "dependencies": ["task_3"],
+    "status": "PENDING",
+    "category": "Backend"
+  },
+  {
+    "id": "task_6",
+    "name": "REST API Development",
+    "priority": 10,
+    "duration": 140,
+    "dependencies": ["task_4"],
+    "status": "PENDING",
+    "category": "Backend"
+  },
+  {
+    "id": "task_7",
+    "name": "Frontend Layout",
+    "priority": 7,
+    "duration": 100,
+    "dependencies": ["task_3"],
+    "status": "PENDING",
+    "category": "Frontend"
+  },
+  {
+    "id": "task_8",
+    "name": "Task Form UI",
+    "priority": 6,
+    "duration": 60,
+    "dependencies": ["task_7"],
+    "status": "PENDING",
+    "category": "Frontend"
+  },
+  {
+    "id": "task_9",
+    "name": "Scheduler Engine",
+    "priority": 10,
+    "duration": 180,
+    "dependencies": ["task_4"],
+    "status": "PENDING",
+    "category": "Algorithm"
+  },
+  {
+    "id": "task_10",
+    "name": "Heap Implementation",
+    "priority": 9,
+    "duration": 110,
+    "dependencies": ["task_9"],
+    "status": "PENDING",
+    "category": "Algorithm"
+  },
+  {
+    "id": "task_11",
+    "name": "Cycle Detection",
+    "priority": 8,
+    "duration": 90,
+    "dependencies": ["task_9"],
+    "status": "PENDING",
+    "category": "Algorithm"
+  },
+  {
+    "id": "task_12",
+    "name": "Topological Sort",
+    "priority": 9,
+    "duration": 100,
+    "dependencies": ["task_9"],
+    "status": "PENDING",
+    "category": "Algorithm"
+  },
+  {
+    "id": "task_13",
+    "name": "Priority Queue Visualizer",
+    "priority": 7,
+    "duration": 80,
+    "dependencies": ["task_10"],
+    "status": "PENDING",
+    "category": "Visualization"
+  },
+  {
+    "id": "task_14",
+    "name": "Dependency Graph UI",
+    "priority": 8,
+    "duration": 120,
+    "dependencies": ["task_11", "task_7"],
+    "status": "PENDING",
+    "category": "Visualization"
+  },
+  {
+    "id": "task_15",
+    "name": "React Flow Integration",
+    "priority": 8,
+    "duration": 90,
+    "dependencies": ["task_14"],
+    "status": "PENDING",
+    "category": "Frontend"
+  },
+  {
+    "id": "task_16",
+    "name": "Task CRUD API",
+    "priority": 8,
+    "duration": 110,
+    "dependencies": ["task_6"],
+    "status": "PENDING",
+    "category": "Backend"
+  },
+  {
+    "id": "task_17",
+    "name": "Scheduler API",
+    "priority": 10,
+    "duration": 120,
+    "dependencies": ["task_6", "task_12"],
+    "status": "PENDING",
+    "category": "Backend"
+  },
+  {
+    "id": "task_18",
+    "name": "Metrics Calculator",
+    "priority": 7,
+    "duration": 90,
+    "dependencies": ["task_17"],
+    "status": "PENDING",
+    "category": "Analytics"
+  },
+  {
+    "id": "task_19",
+    "name": "Average Waiting Time Metric",
+    "priority": 6,
+    "duration": 40,
+    "dependencies": ["task_18"],
+    "status": "PENDING",
+    "category": "Analytics"
+  },
+  {
+    "id": "task_20",
+    "name": "Critical Path Analysis",
+    "priority": 8,
+    "duration": 130,
+    "dependencies": ["task_18"],
+    "status": "PENDING",
+    "category": "Analytics"
+  },
+  {
+    "id": "task_21",
+    "name": "Gantt Chart UI",
+    "priority": 9,
+    "duration": 100,
+    "dependencies": ["task_15", "task_18"],
+    "status": "PENDING",
+    "category": "Visualization"
+  },
+  {
+    "id": "task_22",
+    "name": "Dashboard Page",
+    "priority": 7,
+    "duration": 80,
+    "dependencies": ["task_21"],
+    "status": "PENDING",
+    "category": "Frontend"
+  },
+  {
+    "id": "task_23",
+    "name": "Task Status Animation",
+    "priority": 5,
+    "duration": 50,
+    "dependencies": ["task_21"],
+    "status": "PENDING",
+    "category": "Visualization"
+  },
+  {
+    "id": "task_24",
+    "name": "SQLite Integration",
+    "priority": 8,
+    "duration": 90,
+    "dependencies": ["task_16"],
+    "status": "PENDING",
+    "category": "Database"
+  },
+  {
+    "id": "task_25",
+    "name": "Logging System",
+    "priority": 7,
+    "duration": 70,
+    "dependencies": ["task_17"],
+    "status": "PENDING",
+    "category": "Backend"
+  },
+  {
+    "id": "task_26",
+    "name": "Performance Benchmark",
+    "priority": 6,
+    "duration": 110,
+    "dependencies": ["task_17"],
+    "status": "PENDING",
+    "category": "Testing"
+  },
+  {
+    "id": "task_27",
+    "name": "Unit Testing",
+    "priority": 8,
+    "duration": 120,
+    "dependencies": ["task_10", "task_11", "task_12"],
+    "status": "PENDING",
+    "category": "Testing"
+  },
+  {
+    "id": "task_28",
+    "name": "API Testing",
+    "priority": 7,
+    "duration": 90,
+    "dependencies": ["task_16", "task_17"],
+    "status": "PENDING",
+    "category": "Testing"
+  },
+  {
+    "id": "task_29",
+    "name": "Frontend Testing",
+    "priority": 6,
+    "duration": 100,
+    "dependencies": ["task_22"],
+    "status": "PENDING",
+    "category": "Testing"
+  },
+  {
+    "id": "task_30",
+    "name": "Stress Testing",
+    "priority": 9,
+    "duration": 150,
+    "dependencies": ["task_26", "task_27", "task_28"],
+    "status": "PENDING",
+    "category": "Testing"
+  },
+  {
+    "id": "task_31",
+    "name": "Bug Fixing",
+    "priority": 10,
+    "duration": 130,
+    "dependencies": ["task_30"],
+    "status": "PENDING",
+    "category": "Maintenance"
+  },
+  {
+    "id": "task_32",
+    "name": "UI Polish",
+    "priority": 5,
+    "duration": 70,
+    "dependencies": ["task_29"],
+    "status": "PENDING",
+    "category": "Frontend"
+  },
+  {
+    "id": "task_33",
+    "name": "Dark Mode Support",
+    "priority": 4,
+    "duration": 60,
+    "dependencies": ["task_32"],
+    "status": "PENDING",
+    "category": "Frontend"
+  },
+  {
+    "id": "task_34",
+    "name": "Accessibility Improvements",
+    "priority": 5,
+    "duration": 80,
+    "dependencies": ["task_32"],
+    "status": "PENDING",
+    "category": "Frontend"
+  },
+  {
+    "id": "task_35",
+    "name": "Data Validation",
+    "priority": 8,
+    "duration": 70,
+    "dependencies": ["task_16"],
+    "status": "PENDING",
+    "category": "Backend"
+  },
+  {
+    "id": "task_36",
+    "name": "Error Handling",
+    "priority": 9,
+    "duration": 90,
+    "dependencies": ["task_35"],
+    "status": "PENDING",
+    "category": "Backend"
+  },
+  {
+    "id": "task_37",
+    "name": "Cache Optimization",
+    "priority": 6,
+    "duration": 75,
+    "dependencies": ["task_24"],
+    "status": "PENDING",
+    "category": "Optimization"
+  },
+  {
+    "id": "task_38",
+    "name": "Memory Profiling",
+    "priority": 6,
+    "duration": 65,
+    "dependencies": ["task_26"],
+    "status": "PENDING",
+    "category": "Optimization"
+  },
+  {
+    "id": "task_39",
+    "name": "Graph Animation",
+    "priority": 7,
+    "duration": 95,
+    "dependencies": ["task_15"],
+    "status": "PENDING",
+    "category": "Visualization"
+  },
+  {
+    "id": "task_40",
+    "name": "Queue Animation",
+    "priority": 7,
+    "duration": 85,
+    "dependencies": ["task_13"],
+    "status": "PENDING",
+    "category": "Visualization"
+  },
+  {
+    "id": "task_41",
+    "name": "README Documentation",
+    "priority": 5,
+    "duration": 50,
+    "dependencies": ["task_31"],
+    "status": "PENDING",
+    "category": "Documentation"
+  },
+  {
+    "id": "task_42",
+    "name": "Technical Report",
+    "priority": 8,
+    "duration": 180,
+    "dependencies": ["task_20", "task_30"],
+    "status": "PENDING",
+    "category": "Documentation"
+  },
+  {
+    "id": "task_43",
+    "name": "Slide Preparation",
+    "priority": 6,
+    "duration": 70,
+    "dependencies": ["task_42"],
+    "status": "PENDING",
+    "category": "Presentation"
+  },
+  {
+    "id": "task_44",
+    "name": "Demo Script",
+    "priority": 6,
+    "duration": 40,
+    "dependencies": ["task_43"],
+    "status": "PENDING",
+    "category": "Presentation"
+  },
+  {
+    "id": "task_45",
+    "name": "Video Recording",
+    "priority": 5,
+    "duration": 90,
+    "dependencies": ["task_44"],
+    "status": "PENDING",
+    "category": "Presentation"
+  },
+  {
+    "id": "task_46",
+    "name": "Final Integration",
+    "priority": 10,
+    "duration": 120,
+    "dependencies": ["task_31", "task_39", "task_40"],
+    "status": "PENDING",
+    "category": "Integration"
+  },
+  {
+    "id": "task_47",
+    "name": "System Validation",
+    "priority": 9,
+    "duration": 80,
+    "dependencies": ["task_46"],
+    "status": "PENDING",
+    "category": "Testing"
+  },
+  {
+    "id": "task_48",
+    "name": "Deployment Preparation",
+    "priority": 8,
+    "duration": 60,
+    "dependencies": ["task_47"],
+    "status": "PENDING",
+    "category": "DevOps"
+  },
+  {
+    "id": "task_49",
+    "name": "Production Deployment",
+    "priority": 10,
+    "duration": 45,
+    "dependencies": ["task_48"],
+    "status": "PENDING",
+    "category": "DevOps"
+  },
+  {
+    "id": "task_50",
+    "name": "Post Deployment Monitoring",
+    "priority": 7,
+    "duration": 90,
+    "dependencies": ["task_49"],
+    "status": "PENDING",
+    "category": "Maintenance"
+  }
+]

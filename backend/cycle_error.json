@@ -1,0 +1,29 @@
+[
+{
+"id": "task_1",
+"name": "Requirement Analysis",
+"priority": 8,
+"duration": 60,
+"dependencies": ["task_3"],
+"status": "PENDING",
+"category": "Planning"
+},
+{
+"id": "task_2",
+"name": "System Design",
+"priority": 9,
+"duration": 80,
+"dependencies": ["task_1"],
+"status": "PENDING",
+"category": "Architecture"
+},
+{
+"id": "task_3",
+"name": "Backend Development",
+"priority": 10,
+"duration": 120,
+"dependencies": ["task_2"],
+"status": "PENDING",
+"category": "Backend"
+}
+]
