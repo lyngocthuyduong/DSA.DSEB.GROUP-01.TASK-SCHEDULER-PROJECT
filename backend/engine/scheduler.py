@@ -1,123 +1,256 @@
 # -*- coding: utf-8 -*-
 
-from core_dsa.min_heap import MinHeap
-from core_dsa.graph_dependency import TaskGraph
+# ==========================================
+# 1. CẤU TRÚC DỮ LIỆU: MIN-HEAP
+# ==========================================
+class MinHeap:
+    """Custom Min-Heap (Priority Queue) triển khai thủ công[cite: 7, 43]."""
+    def __init__(self):
+        self.heap = []
 
-def run_scheduler(tasks, algorithm_type='HPF'):
-    """
-    Điều phối lập lịch mô phỏng chuỗi công việc dựa trên cấu trúc đồ thị phụ thuộc và hàng đợi ưu tiên.
-    Hỗ trợ 3 giải thuật: 
-      - 'HPF': Highest Priority First (Độ ưu tiên cao nhất làm trước)
-      - 'EDF': Earliest Deadline First (Hạn chót gần nhất làm trước)
-      - 'SJF': Shortest Job First (Thời gian xử lý ngắn nhất làm trước)
-    """
-    # Khởi tạo đồ thị từ danh sách tasks
+    def push(self, key, value):
+        self.heap.append((key, value))
+        self._heapify_up(len(self.heap) - 1)
+
+    def pop(self):
+        if self.is_empty():
+            raise IndexError("Lỗi: Không thể pop từ một Heap rỗng.")
+        if len(self.heap) == 1:
+            return self.heap.pop()
+        root = self.heap[0]
+        self.heap[0] = self.heap.pop()
+        self._heapify_down(0)
+        return root
+
+    def is_empty(self):
+        return len(self.heap) == 0
+
+    def _heapify_up(self, index):
+        parent = (index - 1) // 2
+        while index > 0 and self.heap[index][0] < self.heap[parent][0]:
+            self.heap[index], self.heap[parent] = self.heap[parent], self.heap[index]
+            index = parent
+            parent = (index - 1) // 2
+
+    def _heapify_down(self, index):
+        length = len(self.heap)
+        while True:
+            left = 2 * index + 1
+            right = 2 * index + 2
+            smallest = index
+
+            if left < length and self.heap[left][0] < self.heap[smallest][0]:
+                smallest = left
+            if right < length and self.heap[right][0] < self.heap[smallest][0]:
+                smallest = right
+
+            if smallest != index:
+                self.heap[index], self.heap[smallest] = self.heap[smallest], self.heap[index]
+                index = smallest
+            else:
+                break
+
+
+# ==========================================
+# 2. CẤU TRÚC DỮ LIỆU: TASK GRAPH (DAG)
+# ==========================================
+class TaskGraph:
+    """Quản lý Đồ thị phụ thuộc của các tác vụ (Dependency Graph)[cite: 6, 32]."""
+    def __init__(self, tasks):
+        self.adj = {t['id']: [] for t in tasks}
+        self.indegree = {t['id']: 0 for t in tasks}
+        
+        # Build adjacency list [cite: 37]
+        for t in tasks:
+            for dep in t.get('dependencies', []):
+                if dep in self.adj:
+                    self.adj[dep].append(t['id'])
+                    self.indegree[t['id']] += 1
+
+    def find_cycle_path(self):
+        """Phát hiện chu trình bằng DFS 3 màu[cite: 39, 48]."""
+        state = {node: 0 for node in self.adj}
+        parent = {node: None for node in self.adj}
+        cycle_nodes = []
+
+        def dfs(node):
+            state[node] = 1 
+            for neighbor in self.adj[node]:
+                if state[neighbor] == 1:
+                    curr = node
+                    path = [neighbor, curr]
+                    while curr != neighbor and parent[curr] is not None:
+                        curr = parent[curr]
+                        path.append(curr)
+                    path.reverse()
+                    cycle_nodes.extend(path)
+                    return True
+                elif state[neighbor] == 0:
+                    parent[neighbor] = node
+                    if dfs(neighbor):
+                        return True
+            state[node] = 2 
+            return False
+
+        for node in self.adj:
+            if state[node] == 0:
+                if dfs(node):
+                    return cycle_nodes
+        return []
+
+    def compute_critical_path_method(self, task_map):
+        """Thuật toán Đường găng (Critical Path Method - CPM)[cite: 84, 85]."""
+        indeg_copy = self.indegree.copy()
+        queue = [t_id for t_id, ind in indeg_copy.items() if ind == 0]
+        topo_order = []
+        
+        while queue:
+            u = queue.pop(0)
+            topo_order.append(u)
+            for v in self.adj[u]:
+                indeg_copy[v] -= 1
+                if indeg_copy[v] == 0:
+                    queue.append(v)
+
+        if len(topo_order) != len(self.adj):
+            return [], {}
+
+        es = {node: 0 for node in self.adj}
+        ef = {node: 0 for node in self.adj}
+        
+        for u in topo_order:
+            duration = task_map[u].get('duration', 0)
+            ef[u] = es[u] + duration
+            for v in self.adj[u]:
+                if ef[u] > es[v]:
+                    es[v] = ef[u]
+
+        max_ef = max(ef.values()) if ef else 0
+
+        ls = {node: max_ef for node in self.adj}
+        lf = {node: max_ef for node in self.adj}
+        
+        for u in reversed(topo_order):
+            if self.adj[u]:
+                lf[u] = min(ls[v] for v in self.adj[u])
+            duration = task_map[u].get('duration', 0)
+            ls[u] = lf[u] - duration
+
+        critical_nodes = []
+        cpm_details = {}
+        for node in self.adj:
+            slack = ls[node] - es[node]
+            cpm_details[node] = {"ES": es[node], "EF": ef[node], "LS": ls[node], "LF": lf[node], "slack": slack}
+            if slack == 0:
+                critical_nodes.append(node)
+
+        return critical_nodes, cpm_details
+
+
+# ==========================================
+# 3. INTERFACE ENGINE (HÀM GIAO TIẾP VỚI API)
+# ==========================================
+
+def build_dag(tasks):
+    """Return adjacency list [cite: 205-206]."""
     graph = TaskGraph(tasks)
+    return graph
+
+def detect_cycle(dag):
+    """Return cycle nodes or None [cite: 207-208]."""
+    cycle = dag.find_cycle_path()
+    return cycle if cycle else None
+
+def topological_schedule(tasks, dag):
+    """
+    Run Kahn's algorithm + Priority Queue [cite: 209-210].
+    Priority rule: priority DESC -> duration ASC -> id ASC [cite: 211-214].
+    Returns: schedule array and summary object [cite: 216-217].
+    """
+    cycle = detect_cycle(dag)
     
-    # Kiểm tra chu trình phụ thuộc bất hợp pháp trước khi xử lý
-    cycle = graph.find_cycle_path()
+    # 1. Xử lý lỗi chu trình (Cycle Detection) [cite: 48-54]
     if cycle:
         return {
-            "status": "error",
-            "message": f"Phát hiện lỗi phụ thuộc vòng tròn (Cycle loop): {' ➔ '.join(cycle)}",
-            "cycle_path": cycle
+            "schedule": [],
+            "summary": {
+                "total_tasks": len(tasks), # [cite: 154]
+                "completed_tasks": 0, # [cite: 155]
+                "blocked_tasks": len(tasks), # [cite: 156]
+                "makespan": 0, # [cite: 157]
+                "critical_path": [], # [cite: 158]
+                "average_waiting_time": 0, # [cite: 161]
+                "is_valid": False, # [cite: 162]
+                "cycle_nodes": cycle # Bổ sung để Frontend highlight lỗi
+            }
         }
 
-    # Bản đồ tra cứu nhanh thuộc tính task theo ID
     task_map = {t['id']: t for t in tasks}
-    
-    # Tính toán bộ chỉ số CPM đường găng làm giàu dữ liệu đầu ra cho Frontend hiển thị
-    critical_nodes, cpm_details = graph.compute_critical_path_method(task_map)
+    critical_nodes, _ = dag.compute_critical_path_method(task_map)
 
-    indegree = graph.indegree.copy()
-    adj = graph.adj
+    indegree = dag.indegree.copy()
+    adj = dag.adj
     
-    # Khởi tạo Ready Queue dựa trên cấu trúc Custom Min-Heap của chúng ta
     ready_queue = MinHeap()
 
-    def push_by_algorithm_strategy(task_id):
-        """Xác định trọng số (key) nạp vào Min-Heap tương ứng với từng chiến lược giải thuật."""
-        task = task_map[task_id]
-        if algorithm_type == 'HPF':
-            # Do Min-Heap lấy giá trị nhỏ nhất ra trước, để ưu tiên tác vụ có chỉ số priority CAO NHẤT,
-            # chúng ta nghịch đảo dấu thành số âm. (Ví dụ: Độ ưu tiên 10 thành -10, sẽ ra trước -5).
-            key = -task.get('priority', 0)
-        elif algorithm_type == 'EDF':
-            # Hạn chót sớm nhất (số nhỏ nhất) thực hiện trước
-            key = task.get('deadline', float('inf'))
-        elif algorithm_type == 'SJF':
-            # Thời gian xử lý ngắn nhất (số nhỏ nhất) thực hiện trước
-            key = task.get('duration', 0)
-        else:
-            key = 0
-        ready_queue.push(key, task_id)
-
-    # Đưa toàn bộ các node gốc ban đầu (bán bậc vào bằng 0) vào hàng đợi sẵn sàng
+    # 2. Khởi tạo Queue với Priority Rule chuẩn PDF [cite: 44-47]
     for t_id, ind in indegree.items():
         if ind == 0:
-            push_by_algorithm_strategy(t_id)
+            task = task_map[t_id]
+            # Key: (-Priority, Duration, ID) -> Bảo đảm đúng thứ tự sắp xếp [cite: 211-214]
+            key = (-task.get('priority', 1), task.get('duration', 0), t_id)
+            ready_queue.push(key, t_id)
 
-    execution_order = []
+    schedule_output = []
     current_time = 0
-    metrics = {}
-    simulation_logs = []
+    total_waiting_time = 0
 
-    # Tiến trình mô phỏng điều phối dòng thời gian chạy đơn luồng (Single Processor)
+    # 3. Vòng lặp điều phối chính [cite: 41-47]
     while not ready_queue.is_empty():
-        # Lấy phần tử tối ưu nhất ra khỏi hàng đợi ưu tiên tại thời điểm hiện tại
-        weight, curr_id = ready_queue.pop()
+        weight_tuple, curr_id = ready_queue.pop()
         task = task_map[curr_id]
         
         start_time = current_time
         duration = task.get('duration', 0)
         end_time = start_time + duration
         
-        # Giả định tất cả công việc có sẵn tại thời điểm t=0 sau khi gỡ bỏ block phụ thuộc
-        waiting_time = start_time 
-        turnaround_time = end_time
+        waiting_time = start_time
+        total_waiting_time += waiting_time
         
-        metrics[curr_id] = {
-            "task_id": curr_id,
-            "name": task.get('name', ''),
-            "start_time": start_time,
-            "end_time": end_time,
-            "waiting_time": waiting_time,
-            "turnaround_time": turnaround_time,
-            "is_critical": curr_id in critical_nodes,
-            "cpm_metrics": cpm_details.get(curr_id, {})
-        }
+        # Build Output Item [cite: 133-144]
+        schedule_output.append({
+            "task_id": curr_id, # [cite: 135]
+            "task_name": task.get('name', ''), # [cite: 139]
+            "priority": task.get('priority', 1), # [cite: 140]
+            "status": "COMPLETED", # [cite: 141]
+            "start_time": start_time, # [cite: 142]
+            "end_time": end_time, # [cite: 143]
+            "dependencies_satisfied": task.get('dependencies', []) # [cite: 144]
+        })
         
-        execution_order.append(curr_id)
-        metric_val = abs(weight) if algorithm_type == 'HPF' else weight
-        simulation_logs.append(
-            f"Thời điểm {start_time}s: Tiến hành kích hoạt [{curr_id}] "
-            f"(Trọng số đánh giá giải thuật = {metric_val}). Hoàn thành lúc {end_time}s."
-        )
-        
-        # Cập nhật mốc thời gian hệ thống
         current_time = end_time
         
-        # Duyệt qua các node lân cận, hạ bậc vào của chúng (Giải thuật Kahn)
+        # Giải thuật Kahn's [cite: 8, 42]
         for neighbor in adj[curr_id]:
             indegree[neighbor] -= 1
             if indegree[neighbor] == 0:
-                push_by_algorithm_strategy(neighbor)
+                n_task = task_map[neighbor]
+                n_key = (-n_task.get('priority', 1), n_task.get('duration', 0), neighbor)
+                ready_queue.push(n_key, neighbor)
 
-    # Tính toán các chỉ số trung bình tổng quan toàn hệ thống
+    # 4. Tính toán Metrics [cite: 80-86]
     total_tasks = len(tasks)
-    avg_waiting = sum(m['waiting_time'] for m in metrics.values()) / total_tasks if total_tasks else 0
-    avg_turnaround = sum(m['turnaround_time'] for m in metrics.values()) / total_tasks if total_tasks else 0
+    avg_waiting_time = total_waiting_time / total_tasks if total_tasks > 0 else 0
 
     return {
-        "status": "success",
-        "algorithm": algorithm_type,
-        "execution_order": execution_order,
-        "critical_path": critical_nodes,
-        "task_details_and_metrics": metrics,
-        "summary": {
-            "average_waiting_time": round(avg_waiting, 2),
-            "average_turnaround_time": round(avg_turnaround, 2),
-            "total_execution_time": current_time
-        },
-        "logs": simulation_logs
+        "schedule": schedule_output, # [cite: 133]
+        "summary": { # [cite: 153]
+            "total_tasks": total_tasks, # [cite: 154]
+            "completed_tasks": len(schedule_output), # [cite: 155]
+            "blocked_tasks": 0, # [cite: 156]
+            "makespan": current_time, # [cite: 157]
+            "critical_path": critical_nodes, # [cite: 158]
+            "average_waiting_time": round(avg_waiting_time, 2), # [cite: 161]
+            "is_valid": True # [cite: 162]
+        }
     }
