@@ -4,7 +4,7 @@
 # 1. CẤU TRÚC DỮ LIỆU: MIN-HEAP
 # ==========================================
 class MinHeap:
-    """Custom Min-Heap (Priority Queue) triển khai thủ công[cite: 7, 43]."""
+    """Custom Min-Heap (Priority Queue) triển khai thủ công."""
     def __init__(self):
         self.heap = []
 
@@ -55,7 +55,7 @@ class MinHeap:
 # 2. CẤU TRÚC DỮ LIỆU: TASK GRAPH (DAG)
 # ==========================================
 class TaskGraph:
-    """Quản lý Đồ thị phụ thuộc của các tác vụ (Dependency Graph)[cite: 6, 32]."""
+    """Quản lý Đồ thị phụ thuộc của các tác vụ (Dependency Graph)."""
     def __init__(self, tasks):
         self.adj = {t['id']: [] for t in tasks}
         self.indegree = {t['id']: 0 for t in tasks}
@@ -68,7 +68,7 @@ class TaskGraph:
                     self.indegree[t['id']] += 1
 
     def find_cycle_path(self):
-        """Phát hiện chu trình bằng DFS 3 màu[cite: 39, 48]."""
+        """Phát hiện chu trình bằng DFS 3 màu."""
         state = {node: 0 for node in self.adj}
         parent = {node: None for node in self.adj}
         cycle_nodes = []
@@ -99,7 +99,7 @@ class TaskGraph:
         return []
 
     def compute_critical_path_method(self, task_map):
-        """Thuật toán Đường găng (Critical Path Method - CPM)[cite: 84, 85]."""
+        """Thuật toán Đường găng (Critical Path Method - CPM)."""
         indeg_copy = self.indegree.copy()
         queue = [t_id for t_id, ind in indeg_copy.items() if ind == 0]
         topo_order = []
@@ -152,36 +152,36 @@ class TaskGraph:
 # ==========================================
 
 def build_dag(tasks):
-    """Return adjacency list [cite: 205-206]."""
+    """Return adjacency list."""
     graph = TaskGraph(tasks)
     return graph
 
 def detect_cycle(dag):
-    """Return cycle nodes or None [cite: 207-208]."""
+    """Return cycle nodes or None."""
     cycle = dag.find_cycle_path()
     return cycle if cycle else None
 
 def topological_schedule(tasks, dag):
     """
-    Run Kahn's algorithm + Priority Queue [cite: 209-210].
-    Priority rule: priority DESC -> duration ASC -> id ASC [cite: 211-214].
-    Returns: schedule array and summary object [cite: 216-217].
+    Run Kahn's algorithm + Priority Queue.
+    Priority rule: priority DESC -> duration ASC -> id ASC.
+    Returns: schedule array and summary object.
     """
     cycle = detect_cycle(dag)
     
-    # 1. Xử lý lỗi chu trình (Cycle Detection) [cite: 48-54]
+    # 1. Xử lý lỗi chu trình (Cycle Detection)
     if cycle:
         return {
             "schedule": [],
             "summary": {
-                "total_tasks": len(tasks), # [cite: 154]
-                "completed_tasks": 0, # [cite: 155]
-                "blocked_tasks": len(tasks), # [cite: 156]
-                "makespan": 0, # [cite: 157]
-                "critical_path": [], # [cite: 158]
-                "average_waiting_time": 0, # [cite: 161]
-                "is_valid": False, # [cite: 162]
-                "cycle_nodes": cycle # Bổ sung để Frontend highlight lỗi
+                "total_tasks": len(tasks),
+                "completed_tasks": 0,
+                "blocked_tasks": len(tasks),
+                "makespan": 0,
+                "critical_path": [],
+                "average_waiting_time": 0,
+                "is_valid": False,
+                "cycle_nodes": cycle
             }
         }
 
@@ -193,11 +193,11 @@ def topological_schedule(tasks, dag):
     
     ready_queue = MinHeap()
 
-    # 2. Khởi tạo Queue với Priority Rule chuẩn PDF [cite: 44-47]
+    # 2. Khởi tạo Queue với Priority Rule chuẩn PDF
     for t_id, ind in indegree.items():
         if ind == 0:
             task = task_map[t_id]
-            # Key: (-Priority, Duration, ID) -> Bảo đảm đúng thứ tự sắp xếp [cite: 211-214]
+            # Key: (-Priority, Duration, ID) -> Bảo đảm đúng thứ tự sắp xếp
             key = (-task.get('priority', 1), task.get('duration', 0), t_id)
             ready_queue.push(key, t_id)
 
@@ -205,7 +205,7 @@ def topological_schedule(tasks, dag):
     current_time = 0
     total_waiting_time = 0
 
-    # 3. Vòng lặp điều phối chính [cite: 41-47]
+    # 3. Vòng lặp điều phối chính
     while not ready_queue.is_empty():
         weight_tuple, curr_id = ready_queue.pop()
         task = task_map[curr_id]
@@ -219,16 +219,16 @@ def topological_schedule(tasks, dag):
         
         slack = cpm_details.get(curr_id, {}).get('slack', 0)
         
-        # Build Output Item [cite: 133-144]
+        # Build Output Item
         schedule_output.append({
-            "task_id": curr_id, # [cite: 135]
-            "task_name": task.get('name', ''), # [cite: 139]
-            "priority": task.get('priority', 1), # [cite: 140]
-            "status": "COMPLETED", # [cite: 141]
-            "start_time": start_time, # [cite: 142]
-            "end_time": end_time, # [cite: 143]
+            "task_id": curr_id,
+            "task_name": task.get('name', ''),
+            "priority": task.get('priority', 1),
+            "status": "COMPLETED",
+            "start_time": start_time,
+            "end_time": end_time,
             "slack": slack,
-            "dependencies_satisfied": task.get('dependencies', []) # [cite: 144]
+            "dependencies_satisfied": task.get('dependencies', [])
         })
         
         current_time = end_time
@@ -241,20 +241,20 @@ def topological_schedule(tasks, dag):
                 n_key = (-n_task.get('priority', 1), n_task.get('duration', 0), neighbor)
                 ready_queue.push(n_key, neighbor)
 
-    # 4. Tính toán Metrics [cite: 80-86]
+    # 4. Tính toán Metrics
     total_tasks = len(tasks)
     avg_waiting_time = total_waiting_time / total_tasks if total_tasks > 0 else 0
 
     return {
-        "schedule": schedule_output, # [cite: 133]
-        "summary": { # [cite: 153]
-            "total_tasks": total_tasks, # [cite: 154]
-            "completed_tasks": len(schedule_output), # [cite: 155]
-            "blocked_tasks": 0, # [cite: 156]
-            "makespan": current_time, # [cite: 157]
-            "critical_path": critical_nodes, # [cite: 158]
-            "average_waiting_time": round(avg_waiting_time, 2), # [cite: 161]
-            "is_valid": True # [cite: 162]
+        "schedule": schedule_output,
+        "summary": {
+            "total_tasks": total_tasks,
+            "completed_tasks": len(schedule_output),
+            "blocked_tasks": 0,
+            "makespan": current_time,
+            "critical_path": critical_nodes,
+            "average_waiting_time": round(avg_waiting_time, 2),
+            "is_valid": True
         }
     }
 
