@@ -103,6 +103,73 @@ export default function App() {
     }
   };
 
+
+  // ==========================================
+  // HÀM NẠP DATA TỪ FILE JSON (AUTO-SAVE VÀO DATABASE M3)
+  // ==========================================
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const rawData = JSON.parse(e.target.result);
+        // Hỗ trợ cả file dạng mảng [...] hoặc dạng object có chứa mảng { tasks: [...] }
+        const taskList = Array.isArray(rawData) ? rawData : rawData.tasks || rawData.data;
+
+        if (!taskList || taskList.length === 0) {
+          alert("File JSON trống hoặc không đúng định dạng!");
+          return;
+        }
+
+        alert(`🚀 Đang nạp ${taskList.length} Task vào Database của Backend... Vui lòng đợi!`);
+        
+        const savedTasks = [];
+        const idMapping = {}; // Dùng để ánh xạ ID cũ trong file JSON sang ID mới do Database tạo ra
+
+        for (const task of taskList) {
+          // Khớp ID dependencies cũ sang ID mới trong Database
+          const mappedDeps = (task.dependencies || []).map(oldDepId => idMapping[oldDepId] || oldDepId);
+
+          const payload = {
+            name: task.name,
+            priority: Number(task.priority || 5),
+            duration: Number(task.duration || 60),
+            dependencies: mappedDeps,
+            category: task.category || "General"
+          };
+
+          const response = await fetch("http://127.0.0.1:8000/api/v1/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            const newTask = await response.json();
+            savedTasks.push(newTask);
+            // Lưu lại mapping để các task sau biết đường nối dây (Gán ID cũ = ID mới)
+            idMapping[task.id] = newTask.id; 
+          } else {
+            console.error("Lỗi lưu task:", task.name);
+          }
+        }
+
+        setTasks([...tasks, ...savedTasks]);
+        alert("✅ Nạp data thành công! Bấm RUN SCHEDULER đi sếp!");
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ Lỗi khi đọc file JSON!");
+      } finally {
+        // Reset lại input file để chọn lại file cũ vẫn ăn
+        event.target.value = null;
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // ==========================================
   // NHIỆM VỤ 1 CỦA M4: GỌI API BACKEND THẬT
   // ==========================================
@@ -112,7 +179,7 @@ export default function App() {
       const response = await fetch("http://127.0.0.1:8000/api/v1/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ algorithm: "kahn", task_ids: [] }), 
+        body: JSON.stringify({ algorithm: "kahn", task_ids: tasks.map(t => t.id) }), 
       });
 
       // 2. Bắt lỗi chu trình (409) và hiển thị cảnh báo đỏ chót
@@ -269,9 +336,31 @@ export default function App() {
           </select>
         </div>
 
+        {/* --- KHU VỰC NÚT BẤM --- */}
+        <input 
+          type="file" 
+          id="json-upload" 
+          accept=".json" 
+          style={{ display: "none" }} 
+          onChange={handleFileUpload} 
+        />
+
         <button className="btn add-btn" onClick={addTask}>ADD TASK</button>
         <button className="btn run-btn" onClick={runScheduler}>RUN SCHEDULER</button>
         <button className="btn clear-btn" onClick={clearAll}>CLEAR ALL</button>
+        
+        <button 
+          className="btn" 
+          style={{ 
+            background: "#9c27b0", 
+            marginTop: "10px", 
+            fontWeight: "bold",
+            boxShadow: "0 4px 15px rgba(156, 39, 176, 0.3)"
+          }} 
+          onClick={() => document.getElementById('json-upload').click()}
+        >
+          📂 LOAD DATA (JSON)
+        </button>
       </div>
 
       {/* RIGHT CONTENT */}
@@ -326,7 +415,7 @@ export default function App() {
 
         {/* GANTT CHART */}
         <div className="timeline-box">
-          <h2>Gantt Chart</h2>
+          <h2>GANTT CHART</h2>
           {timeline.length === 0 ? (
             <div style={{ opacity: 0.7, fontStyle: "italic", padding: "20px 0" }}>
               Biểu đồ sẽ xuất hiện sau khi gọi API...
@@ -350,9 +439,9 @@ export default function App() {
                           width: `${task.duration * 2}px`,
                           background: STATUS_COLORS[task.status] || STATUS_COLORS.COMPLETED,
                         }}
-                      >
-                        {task.name}
-                      </div>
+                      
+              
+                      />
                     </div>
                   </div>
                 ))}
