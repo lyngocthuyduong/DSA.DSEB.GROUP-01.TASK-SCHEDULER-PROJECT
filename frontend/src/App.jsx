@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // Import thư viện vẽ đồ thị xịn xò
 import ReactFlow, { Background, Controls, MarkerType } from "reactflow";
 import "reactflow/dist/style.css";
@@ -13,35 +13,18 @@ const STATUS_COLORS = {
 };
 
 export default function App() {
-  const [tasks, setTasks] = useState([
-    {
-      id: "task_1",
-      name: "Database Design",
-      priority: 8,
-      duration: 120,
-      dependencies: [],
-      status: "PENDING", // Trạng thái gốc luôn là PENDING
-      category: "Database",
-    },
-    {
-      id: "task_2",
-      name: "Backend API",
-      priority: 7,
-      duration: 180,
-      dependencies: ["task_1"],
-      status: "PENDING",
-      category: "Backend",
-    },
-    {
-      id: "task_3",
-      name: "Frontend Integration",
-      priority: 6,
-      duration: 90,
-      dependencies: ["task_2"],
-      status: "PENDING",
-      category: "Frontend",
-    },
-  ]);
+  // 1. Cho giỏ hàng trống lúc mới mở web
+  const [tasks, setTasks] = useState([]);
+
+  // 2. Tự động gọi API cổng 8000 để hút dữ liệu ngay khi web vừa tải xong
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/api/v1/tasks")
+      .then(res => res.json())
+      .then(data => {
+        if(Array.isArray(data)) setTasks(data);
+      })
+      .catch(err => console.error("Lỗi lấy dữ liệu từ Backend:", err));
+  }, []);
 
   const [name, setName] = useState("");
   const [duration, setDuration] = useState(60);
@@ -79,37 +62,45 @@ export default function App() {
   // ==========================================
   const runScheduler = async () => {
     try {
-      // Nhớ nhắc Backend dev đảm bảo port và endpoint này đang chạy
-      const response = await fetch("http://localhost:8000/api/v1/schedule", {
+      // 1. Gửi lệnh chạy thuật toán Kahn sang Backend
+      const response = await fetch("http://127.0.0.1:8000/api/v1/schedule", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tasks }), // Ném thẳng mảng tasks qua cho Backend tính
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ algorithm: "kahn", task_ids: [] }), 
       });
 
+      // 2. Bắt lỗi chu trình (409) và hiển thị cảnh báo đỏ chót
       if (!response.ok) {
-        throw new Error("Lỗi khi kết nối Backend");
+        const errorData = await response.json();
+        alert("🛑 BACKEND BÁO LỖI:\n" + errorData.detail);
+        return;
       }
 
       const data = await response.json();
       
-      // Giả định Backend trả về: { schedule: [{id, name, start, end, status, es, ef, slack}, ...] }
+      // 3. Ép kiểu dữ liệu của Backend (task_id) cho khớp với Frontend (id)
       const backendTimeline = data.schedule || [];
-      
-      setTimeline(backendTimeline);
+      const formattedTimeline = backendTimeline.map(t => ({
+         id: t.task_id,
+         name: t.task_name,
+         start: t.start_time,
+         end: t.end_time,
+         status: t.status,
+         slack: 0 
+      }));
 
-      // Cập nhật lại Status cho mảng tasks để giao diện tự đổi màu
+      setTimeline(formattedTimeline);
+
+      // 4. Đổi màu trạng thái trên đồ thị DAG
       const updatedTasks = tasks.map((t) => {
-        const scheduled = backendTimeline.find((r) => r.id === t.id);
-        return scheduled 
-          ? { ...t, status: scheduled.status, es: scheduled.es, ef: scheduled.ef, slack: scheduled.slack }
-          : t;
+        const scheduled = formattedTimeline.find((r) => r.id === t.id);
+        return scheduled ? { ...t, status: scheduled.status } : t;
       });
       setTasks(updatedTasks);
+
     } catch (error) {
       console.error(error);
-      alert("⚠️ Không thể gọi API! Hãy kiểm tra xem Backend đã bật chưa.");
+      alert("⚠️ Mất kết nối! Hãy kiểm tra xem Backend cổng 8000 đã bật chưa.");
     }
   };
 
@@ -125,13 +116,10 @@ export default function App() {
   // ==========================================
   // NHIỆM VỤ 2 CỦA M4: CHUẨN BỊ DATA CHO REACT FLOW (DAG THẬT)
   // ==========================================
-  // ==========================================
-  // NHIỆM VỤ 2 CỦA M4: CHUẨN BỊ DATA CHO REACT FLOW (DAG THẬT)
-  // ==========================================
   const reactFlowNodes = tasks.map((task, index) => ({
     id: task.id,
-    sourcePosition: 'right', /* <-- ĐÃ THÊM: Điểm xuất phát mũi tên ở bên phải */
-    targetPosition: 'left',  /* <-- ĐÃ THÊM: Điểm nhận mũi tên ở bên trái */
+    sourcePosition: 'right', 
+    targetPosition: 'left',  
     position: { x: index * 250, y: 50 }, 
     data: { 
       label: (
@@ -157,12 +145,13 @@ export default function App() {
       id: `e-${dep}-${task.id}`,
       source: dep,
       target: task.id,
-      type: 'smoothstep', /* <-- ĐÃ THÊM: Đổi đường nối thành nét gấp khúc vuông vức */
+      type: 'smoothstep', 
       animated: task.status === "RUNNING", 
       markerEnd: { type: MarkerType.ArrowClosed, color: '#fff' },
       style: { stroke: '#fff', strokeWidth: 2 }
     }))
   );
+  
   return (
     <div className="dashboard">
       {/* SIDEBAR */}
