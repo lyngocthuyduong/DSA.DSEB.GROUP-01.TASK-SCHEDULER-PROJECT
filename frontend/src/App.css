@@ -547,31 +547,39 @@ body{
   width: 100%;
   border-collapse: collapse;
   margin-top: 15px;
+  font-size: 14px;
 }
 
 .schedule-table th {
   text-align: left;
-  padding: 12px;
+  padding: 14px 12px; /* Tăng padding xíu cho thoáng */
   color: rgba(255, 255, 255, 0.7);
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .schedule-table td {
-  padding: 12px;
+  padding: 14px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  vertical-align: middle; /* Căn giữa chữ xịn hơn */
 }
 
-/* Thêm màu mè cho các trạng thái trong bảng */
+/* Các huy hiệu trạng thái (Badge) trong bảng */
 .status-badge {
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
   color: white;
+  text-transform: uppercase; /* Cho chữ in hoa hết lên nhìn cho pro */
+  display: inline-block;
 }
 
-.status-completed { background: #00c853; }
-.status-ready { background: #2979ff; }
-.status-running { background: #ff9800; }
-.status-blocked { background: #ff5252; }
-.status-pending { background: #9e9e9e; }
+/* Gradient y hệt như màu của DAG Node */
+.status-completed { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.status-ready { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.status-running { background: linear-gradient(135deg, #f59e0b, #ea580c); }
+.status-blocked { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.status-pending { background: linear-gradient(135deg, #9ca3af, #6b7280); }
