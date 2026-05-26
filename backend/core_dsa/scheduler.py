@@ -186,7 +186,7 @@ def topological_schedule(tasks, dag):
         }
 
     task_map = {t['id']: t for t in tasks}
-    critical_nodes, _ = dag.compute_critical_path_method(task_map)
+    critical_nodes, cpm_details = dag.compute_critical_path_method(task_map)
 
     indegree = dag.indegree.copy()
     adj = dag.adj
@@ -217,6 +217,8 @@ def topological_schedule(tasks, dag):
         waiting_time = start_time
         total_waiting_time += waiting_time
         
+        slack = cpm_details.get(curr_id, {}).get('slack', 0)
+        
         # Build Output Item [cite: 133-144]
         schedule_output.append({
             "task_id": curr_id, # [cite: 135]
@@ -225,6 +227,7 @@ def topological_schedule(tasks, dag):
             "status": "COMPLETED", # [cite: 141]
             "start_time": start_time, # [cite: 142]
             "end_time": end_time, # [cite: 143]
+            "slack": slack,
             "dependencies_satisfied": task.get('dependencies', []) # [cite: 144]
         })
         
@@ -253,4 +256,40 @@ def topological_schedule(tasks, dag):
             "average_waiting_time": round(avg_waiting_time, 2), # [cite: 161]
             "is_valid": True # [cite: 162]
         }
+    }
+
+
+def run_scheduler(tasks, algorithm_type="HPF"):
+    dag = build_dag(tasks)
+    algorithm = (algorithm_type or "").strip().lower()
+    if algorithm not in ["kahn", "topological", "hpf", "priority", "highestpriorityfirst"]:
+        algorithm = "kahn"
+
+    result = topological_schedule(tasks, dag)
+
+    if not result["summary"].get("is_valid", True):
+        return {
+            "status": "error",
+            "message": "Chu trình dependency được phát hiện.",
+            "cycle_path": result["summary"].get("cycle_nodes", [])
+        }
+
+    task_details_and_metrics = {
+        item["task_id"]: {
+            "name": item["task_name"],
+            "start_time": item["start_time"],
+            "end_time": item["end_time"],
+            "slack": item.get("slack", 0),
+            "dependencies_satisfied": item.get("dependencies_satisfied", []),
+        }
+        for item in result["schedule"]
+    }
+
+    return {
+        "status": "ok",
+        "execution_order": [item["task_id"] for item in result["schedule"]],
+        "task_details_and_metrics": task_details_and_metrics,
+        "summary": result["summary"],
+        "critical_path": result["summary"].get("critical_path", []),
+        "logs": []
     }
