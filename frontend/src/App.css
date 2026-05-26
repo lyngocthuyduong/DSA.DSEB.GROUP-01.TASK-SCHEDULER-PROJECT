@@ -583,3 +583,215 @@ body{
 .status-running { background: linear-gradient(135deg, #f59e0b, #ea580c); }
 .status-blocked { background: linear-gradient(135deg, #ef4444, #dc2626); }
 .status-pending { background: linear-gradient(135deg, #9ca3af, #6b7280); }
+/* =========================================
+   CSS MỚI: GANTT CHART CHUẨN GRID CHUYÊN NGHIỆP
+========================================= */
+
+.timeline-box.gantt-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.gantt-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Header */
+.gantt-header-wrapper {
+  display: flex;
+  background: rgba(255, 255, 255, 0.08);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.gantt-header-cell {
+  padding: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  border-right: 2px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* Cột tên Task */
+.gantt-name-col {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: rgba(0, 0, 0, 0.1); /* Làm tối cột tên một chút cho nổi bật */
+  z-index: 20; /* Luôn nổi lên trên */
+}
+
+.gantt-header-timeline {
+  flex: 1;
+  display: flex;
+  overflow-x: auto; /* Cuộn ngang */
+}
+
+.gantt-time-cell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Phần thân (Body) */
+.gantt-body-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; 
+  max-height: 400px; /* Giới hạn chiều cao để cuộn dọc nếu nhiều task */
+}
+
+.gantt-row {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gantt-task-name {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+  border-right: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Track trượt chứa Bar và Lưới */
+.gantt-timeline-track {
+  flex: 1;
+  position: relative;
+  background: rgba(255, 255, 255, 0.02);
+  min-height: 50px;
+}
+
+/* Lưới nền (Grid lines) */
+.gantt-grid-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  pointer-events: none; /* Tránh cản chuột khi bấm vào Bar */
+}
+
+.gantt-grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Thanh Bar định vị tuyệt đối */
+.gantt-bar {
+  position: absolute;
+  top: 10px; 
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: 0.3s;
+  z-index: 10;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 10px;
+}
+
+.gantt-bar:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+/* =========================================
+   GÓI ĐỘ GIAO DIỆN DARK MODE CHUYÊN NGHIỆP
+========================================= */
+/* Đổi nền tổng thành màu Đen xám (Slate 900) cực trend */
+body {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+.dashboard {
+  background: transparent !important; /* Xóa nền tím cũ */
+}
+
+/* Biến các khối hộp thành kính mờ tối màu (Dark Glassmorphism) */
+.sidebar, 
+.box, 
+.metric-card, 
+.status-row, 
+.timeline-box, 
+.gantt-chart-wrapper {
+  background: rgba(30, 41, 59, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+  color: #f8fafc !important;
+}
+
+/* Đổi màu chữ của các tiêu đề */
+.sidebar h2, .box h2, .logo, .subtitle, label, .metric-title {
+  color: #e2e8f0 !important;
+}
+
+/* Làm tối các ô nhập liệu (Input/Select) */
+.form-group input, 
+.form-group select {
+  background: rgba(15, 23, 42, 0.8) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Làm tối cái khung lưới Gantt */
+.gantt-header-wrapper {
+  background: rgba(15, 23, 42, 0.5) !important;
+}
+.gantt-name-col {
+  background: rgba(15, 23, 42, 0.8) !important;
+}
+/* Fix chữ bị đen trong ô chọn Dependencies */
+.form-group option {
+  color: #ffffff !important;
+  background: #1e293b !important; /* Lót thêm cái nền tối cho các option để dễ đọc */
+}
+/* Căn giữa chữ ở các mốc thời gian (0m, 60m...) và kẻ viền rõ hơn */
+.gantt-time-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Căn giữa thay vì lệch trái */
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  border-right: 1px solid rgba(255, 255, 255, 0.15) !important; /* Viền ô rõ hơn */
+}
+
+/* Vạch kẻ sọc dọc chia ô sáng hơn để nhìn rõ thành từng cục 60p */
+.gantt-grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.15) !important; 
+}
+
+/* THÊM MỚI: Highlight xen kẽ các hàng để nhìn ngang không bị hoa mắt */
+.gantt-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02); 
+}
