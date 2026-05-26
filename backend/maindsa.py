@@ -5,7 +5,7 @@ import uuid
 import json
 import os
 from schemas import TaskCreate, TaskResponse, ScheduleRequest, ScheduleResult
-from core_dsa.scheduler import run_scheduler
+from core_dsa.scheduler import scheduler
 
 app = FastAPI(title="Task Scheduler API")
 
@@ -126,7 +126,7 @@ def run_scheduling(payload: ScheduleRequest):
     # ----------------------------------------------------
     # GỌI HÀM CỦA M2 TẠI ĐÂY
     # ----------------------------------------------------
-    m2_result = run_scheduler(tasks_to_schedule, algorithm_type=payload.algorithm)
+    m2_result = scheduler(tasks_to_schedule, algorithm_type=payload.algorithm)
     
     # Xử lý nếu M2 phát hiện chu trình (Graph invalid)
     if m2_result.get("status") == "error":
