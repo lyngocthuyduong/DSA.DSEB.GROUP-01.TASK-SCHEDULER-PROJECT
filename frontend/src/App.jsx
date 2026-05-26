@@ -247,10 +247,24 @@ export default function App() {
 
         <div className="form-group">
           <label>DEPENDENCIES</label>
-          <select multiple className="dep-list" value={deps} onChange={(e) => setDeps([...e.target.selectedOptions].map((o) => o.value))}>
-            {tasks.map((task) => (
-              <option key={task.id} value={task.id}>{task.name}</option>
-            ))}
+          <select 
+            multiple 
+            className="dep-list" 
+            value={deps} 
+            onChange={(e) => setDeps([...e.target.selectedOptions].map(o => o.value))}
+          >
+            {/* Thêm điều kiện check: Nếu chưa có task nào thì hiện chữ nhắc nhở */}
+            {tasks.length === 0 ? (
+              <option disabled value="">
+                (Chưa có task nào để phụ thuộc)
+              </option>
+            ) : (
+              tasks.map((task) => (
+                <option key={task.id} value={task.id}>
+                  {task.name}
+                </option>
+              ))
+            )}
           </select>
         </div>
 
