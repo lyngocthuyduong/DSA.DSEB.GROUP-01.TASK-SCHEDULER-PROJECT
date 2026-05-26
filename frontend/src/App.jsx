@@ -11,41 +11,10 @@ const STATUS_COLORS = {
   COMPLETED: "#00c853",
   BLOCKED: "#ff5252",
 };
-// Cấu hình tỷ lệ định vị cho Gantt Chart lưới
-const GANTT_NAME_COL_WIDTH = 150; // Thu nhỏ cột tên một chút cho cân đối với ô 60px
-const GANTT_MINUTE_WIDTH = 1.0;   // Tỷ lệ 1:1 chuẩn khoa học
-const GANTT_GRID_HOURS = 24;      // Giữ nguyên 24 tiếng
+
 export default function App() {
   // 1. Cho giỏ hàng trống lúc mới mở web
-  const [tasks, setTasks] = useState([
-    {
-      id: "task_1",
-      name: "Database Design",
-      priority: 8,
-      duration: 120,
-      dependencies: [],
-      status: "PENDING",
-      category: "Database",
-    },
-    {
-      id: "task_2",
-      name: "Backend API",
-      priority: 7,
-      duration: 180,
-      dependencies: ["task_1"],
-      status: "PENDING",
-      category: "Backend",
-    },
-    {
-      id: "task_3",
-      name: "Frontend Integration",
-      priority: 6,
-      duration: 90,
-      dependencies: ["task_2"],
-      status: "PENDING",
-      category: "Frontend",
-    },
-  ]);
+  const [tasks, setTasks] = useState([]);
 
   // 2. Tự động gọi API cổng 8000 để hút dữ liệu ngay khi web vừa tải xong
   useEffect(() => {
@@ -65,27 +34,73 @@ export default function App() {
 
   const [timeline, setTimeline] = useState([]);
 
-  const addTask = () => {
+  // ==========================================
+  // HÀM ADD TASK MỚI (LƯU THẲNG XUỐNG DATABASE)
+  // ==========================================
+  const addTask = async () => {
     if (!name) return;
-    const newTask = {
-      id: `task_${tasks.length + 1}`,
-      name,
+
+    // 1. Đóng gói dữ liệu gửi lên Backend (KHÔNG TỰ TẠO ID NỮA, ĐỂ BACKEND LO)
+    const payload = {
+      name: name,
       priority: Number(priority),
       duration: Number(duration),
       dependencies: deps,
-      status: "PENDING", // Mặc định luôn PENDING khi add
-      category,
+      category: category
     };
-    setTasks([...tasks, newTask]);
-    setName("");
-    setDuration(60);
-    setPriority(5);
-    setDeps([]);
+
+    try {
+      // 2. Gọi API POST để lưu vào SQLite
+      const response = await fetch("http://127.0.0.1:8000/api/v1/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      // 3. Xử lý lỗi (Ví dụ: Trùng tên, lỗi logic dependency...)
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert("❌ LỖI TỪ BACKEND:\n" + errorData.detail);
+        return;
+      }
+
+      // 4. Nếu thành công, lấy Task thật (đã kèm ID xịn) từ Backend trả về và vẽ lên UI
+      const savedTask = await response.json();
+      setTasks([...tasks, savedTask]);
+
+      // Reset Form
+      setName("");
+      setDuration(60);
+      setPriority(5);
+      setDeps([]);
+
+    } catch (error) {
+      console.error(error);
+      alert("⚠️ Không thể kết nối với Backend. Hãy kiểm tra server!");
+    }
   };
 
-  const clearAll = () => {
-    setTasks([]);
-    setTimeline([]);
+  // ==========================================
+  // HÀM CLEAR ALL MỚI (XÓA SẠCH TRONG DATABASE)
+  // ==========================================
+  const clearAll = async () => {
+    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa TOÀN BỘ dữ liệu trong Database không?");
+    if (!confirmDelete) return;
+
+    try {
+      // Bắn API gọi lệnh DELETE cho từng task hiện có
+      for (const task of tasks) {
+        await fetch(`http://127.0.0.1:8000/api/v1/tasks/${task.id}`, { 
+          method: "DELETE" 
+        });
+      }
+      // Dọn dẹp màn hình UI
+      setTasks([]);
+      setTimeline([]);
+    } catch (error) {
+      console.error(error);
+      alert("⚠️ Lỗi khi xóa dữ liệu từ Backend!");
+    }
   };
 
   // ==========================================
@@ -247,24 +262,10 @@ export default function App() {
 
         <div className="form-group">
           <label>DEPENDENCIES</label>
-          <select 
-            multiple 
-            className="dep-list" 
-            value={deps} 
-            onChange={(e) => setDeps([...e.target.selectedOptions].map(o => o.value))}
-          >
-            {/* Thêm điều kiện check: Nếu chưa có task nào thì hiện chữ nhắc nhở */}
-            {tasks.length === 0 ? (
-              <option disabled value="">
-                (Chưa có task nào để phụ thuộc)
-              </option>
-            ) : (
-              tasks.map((task) => (
-                <option key={task.id} value={task.id}>
-                  {task.name}
-                </option>
-              ))
-            )}
+          <select multiple className="dep-list" value={deps} onChange={(e) => setDeps([...e.target.selectedOptions].map((o) => o.value))}>
+            {tasks.map((task) => (
+              <option key={task.id} value={task.id}>{task.name}</option>
+            ))}
           </select>
         </div>
 
@@ -323,66 +324,43 @@ export default function App() {
           </div>
         </div>
 
-        {/* GANTT CHART: LUÔN HIỂN THỊ KHUNG LƯỚI */}
-        <div className="timeline-box gantt-box">
-          <h2>Execution Flow Visualization (Gantt Chart)</h2>
-
-          {timeline.length === 0 && tasks.length > 0 && (
-            <div style={{ opacity: 0.6, fontStyle: "italic", padding: "5px 0 15px 0", textAlign: 'center', fontSize: '13px' }}>
-              Khung lưới đã sẵn sàng... Nhấn Run Scheduler để lấp đầy tiến độ.
+        {/* GANTT CHART */}
+        <div className="timeline-box">
+          <h2>Gantt Chart</h2>
+          {timeline.length === 0 ? (
+            <div style={{ opacity: 0.7, fontStyle: "italic", padding: "20px 0" }}>
+              Biểu đồ sẽ xuất hiện sau khi gọi API...
             </div>
-          )}
-
-          <div className="gantt-chart-wrapper">
-            <div className="gantt-header-wrapper">
-              <div className="gantt-name-col gantt-header-cell" style={{ width: `${GANTT_NAME_COL_WIDTH}px` }}>
-                Task Name
+          ) : (
+            <>
+              <div className="gantt-header">
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <div key={i} className="gantt-time">{i * 60}m</div>
+                ))}
               </div>
-              <div className="gantt-timeline-track gantt-header-timeline">
-                {Array.from({ length: GANTT_GRID_HOURS + 1 }).map((_, i) => (
-                  <div key={i} className="gantt-time-cell" style={{ width: `${60 * GANTT_MINUTE_WIDTH}px`, minWidth: `${60 * GANTT_MINUTE_WIDTH}px` }}>
-                    {i * 60}m
+              <div className="timeline-wrapper">
+                {timeline.map((task) => (
+                  <div key={task.id} className="timeline-row">
+                    <div className="timeline-name">{task.name}</div>
+                    <div className="timeline-track">
+                      <div
+                        className="timeline-bar"
+                        style={{
+                          left: `${task.start * 2}px`,
+                          width: `${task.duration * 2}px`,
+                          background: STATUS_COLORS[task.status] || STATUS_COLORS.COMPLETED,
+                        }}
+                      >
+                        {task.name}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div className="timeline-wrapper gantt-body-wrapper">
-              {tasks.length === 0 ? (
-                <div style={{ padding: '30px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontStyle: 'italic' }}>
-                  Hãy thêm Task ở form bên trái để tạo khung lưới...
-                </div>
-              ) : (
-                tasks.map((task) => (
-                  <div key={task.id} className="timeline-row gantt-row">
-                    <div className="gantt-name-col gantt-task-name" style={{ width: `${GANTT_NAME_COL_WIDTH}px`, minWidth: `${GANTT_NAME_COL_WIDTH}px` }}>
-                      {task.name}
-                    </div>
-                    <div className="gantt-timeline-track timeline-track">
-                      <div className="gantt-grid-lines">
-                        {Array.from({ length: GANTT_GRID_HOURS + 1 }).map((_, i) => (
-                          <div key={i} className="gantt-grid-line" style={{ left: `${i * 60 * GANTT_MINUTE_WIDTH}px` }} />
-                        ))}
-                      </div>
-                      {task.start !== undefined && (
-                        <div
-                          className="timeline-bar gantt-bar"
-                          style={{
-                            left: `${task.start * GANTT_MINUTE_WIDTH}px`,
-                            width: `${task.duration * GANTT_MINUTE_WIDTH}px`,
-                            background: STATUS_COLORS[task.status] || STATUS_COLORS.COMPLETED,
-                          }}
-                        >
-                          {task.duration}m
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+            </>
+          )}
         </div>
+
         {/* ==========================================
             NHIỆM VỤ 3 CỦA M4: HIỂN THỊ ES, EF, SLACK (CPM) 
         ========================================== */}
