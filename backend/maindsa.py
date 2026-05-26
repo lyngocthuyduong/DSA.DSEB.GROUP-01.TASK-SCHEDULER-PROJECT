@@ -5,7 +5,7 @@ import uuid
 import json
 import os
 from schemas import TaskCreate, TaskResponse, ScheduleRequest, ScheduleResult
-from core_dsa.scheduler import scheduler
+from core_dsa.scheduler import run_scheduler
 
 app = FastAPI(title="Task Scheduler API")
 
@@ -41,7 +41,7 @@ def load_test_data(filename: str):
         print(f"❌ Không tìm thấy file. Máy tính đang tìm tại địa chỉ này: {file_path}")
 
 # Đổi tên file test tại đây
-load_test_data("stress_test_100.json")
+load_test_data("C:\\Users\\PC\\Downloads\\TaskScheduler\\stress_test_100.json")
 # ==========================================
 # 1. API QUẢN LÝ TASK (CRUD)
 # ==========================================
@@ -126,7 +126,7 @@ def run_scheduling(payload: ScheduleRequest):
     # ----------------------------------------------------
     # GỌI HÀM CỦA M2 TẠI ĐÂY
     # ----------------------------------------------------
-    m2_result = scheduler(tasks_to_schedule, algorithm_type=payload.algorithm)
+    m2_result = run_scheduler(tasks_to_schedule, algorithm_type=payload.algorithm)
     
     # Xử lý nếu M2 phát hiện chu trình (Graph invalid)
     if m2_result.get("status") == "error":
