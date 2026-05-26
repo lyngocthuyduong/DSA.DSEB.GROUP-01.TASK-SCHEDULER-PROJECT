@@ -29,6 +29,7 @@ class ScheduledTaskOutput(BaseModel):
     status: str
     start_time: int
     end_time: int
+    slack: int = 0
     dependencies_satisfied: List[str]
 
 class ScheduleSummary(BaseModel):
