@@ -11,7 +11,10 @@ const STATUS_COLORS = {
   COMPLETED: "#00c853",
   BLOCKED: "#ff5252",
 };
-
+// Cấu hình tỷ lệ định vị cho Gantt Chart lưới
+const GANTT_NAME_COL_WIDTH = 150; // Thu nhỏ cột tên một chút cho cân đối với ô 60px
+const GANTT_MINUTE_WIDTH = 1.0;   // Tỷ lệ 1:1 chuẩn khoa học
+const GANTT_GRID_HOURS = 24;      // Giữ nguyên 24 tiếng
 export default function App() {
   // 1. Cho giỏ hàng trống lúc mới mở web
   const [tasks, setTasks] = useState([]);
@@ -278,43 +281,66 @@ export default function App() {
           </div>
         </div>
 
-        {/* GANTT CHART */}
-        <div className="timeline-box">
-          <h2>Gantt Chart</h2>
-          {timeline.length === 0 ? (
-            <div style={{ opacity: 0.7, fontStyle: "italic", padding: "20px 0" }}>
-              Biểu đồ sẽ xuất hiện sau khi gọi API...
+        {/* GANTT CHART: LUÔN HIỂN THỊ KHUNG LƯỚI */}
+        <div className="timeline-box gantt-box">
+          <h2>Execution Flow Visualization (Gantt Chart)</h2>
+
+          {timeline.length === 0 && tasks.length > 0 && (
+            <div style={{ opacity: 0.6, fontStyle: "italic", padding: "5px 0 15px 0", textAlign: 'center', fontSize: '13px' }}>
+              Khung lưới đã sẵn sàng... Nhấn Run Scheduler để lấp đầy tiến độ.
             </div>
-          ) : (
-            <>
-              <div className="gantt-header">
-                {Array.from({ length: 20 }).map((_, i) => (
-                  <div key={i} className="gantt-time">{i * 60}m</div>
-                ))}
+          )}
+
+          <div className="gantt-chart-wrapper">
+            <div className="gantt-header-wrapper">
+              <div className="gantt-name-col gantt-header-cell" style={{ width: `${GANTT_NAME_COL_WIDTH}px` }}>
+                Task Name
               </div>
-              <div className="timeline-wrapper">
-                {timeline.map((task) => (
-                  <div key={task.id} className="timeline-row">
-                    <div className="timeline-name">{task.name}</div>
-                    <div className="timeline-track">
-                      <div
-                        className="timeline-bar"
-                        style={{
-                          left: `${task.start * 2}px`,
-                          width: `${task.duration * 2}px`,
-                          background: STATUS_COLORS[task.status] || STATUS_COLORS.COMPLETED,
-                        }}
-                      >
-                        {task.name}
-                      </div>
-                    </div>
+              <div className="gantt-timeline-track gantt-header-timeline">
+                {Array.from({ length: GANTT_GRID_HOURS + 1 }).map((_, i) => (
+                  <div key={i} className="gantt-time-cell" style={{ width: `${60 * GANTT_MINUTE_WIDTH}px`, minWidth: `${60 * GANTT_MINUTE_WIDTH}px` }}>
+                    {i * 60}m
                   </div>
                 ))}
               </div>
-            </>
-          )}
-        </div>
+            </div>
 
+            <div className="timeline-wrapper gantt-body-wrapper">
+              {tasks.length === 0 ? (
+                <div style={{ padding: '30px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontStyle: 'italic' }}>
+                  Hãy thêm Task ở form bên trái để tạo khung lưới...
+                </div>
+              ) : (
+                tasks.map((task) => (
+                  <div key={task.id} className="timeline-row gantt-row">
+                    <div className="gantt-name-col gantt-task-name" style={{ width: `${GANTT_NAME_COL_WIDTH}px`, minWidth: `${GANTT_NAME_COL_WIDTH}px` }}>
+                      {task.name}
+                    </div>
+                    <div className="gantt-timeline-track timeline-track">
+                      <div className="gantt-grid-lines">
+                        {Array.from({ length: GANTT_GRID_HOURS + 1 }).map((_, i) => (
+                          <div key={i} className="gantt-grid-line" style={{ left: `${i * 60 * GANTT_MINUTE_WIDTH}px` }} />
+                        ))}
+                      </div>
+                      {task.start !== undefined && (
+                        <div
+                          className="timeline-bar gantt-bar"
+                          style={{
+                            left: `${task.start * GANTT_MINUTE_WIDTH}px`,
+                            width: `${task.duration * GANTT_MINUTE_WIDTH}px`,
+                            background: STATUS_COLORS[task.status] || STATUS_COLORS.COMPLETED,
+                          }}
+                        >
+                          {task.duration}m
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
         {/* ==========================================
             NHIỆM VỤ 3 CỦA M4: HIỂN THỊ ES, EF, SLACK (CPM) 
         ========================================== */}
