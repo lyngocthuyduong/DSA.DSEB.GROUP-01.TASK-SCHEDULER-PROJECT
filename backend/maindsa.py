@@ -41,7 +41,7 @@ def load_test_data(filename: str):
         print(f"❌ Không tìm thấy file. Máy tính đang tìm tại địa chỉ này: {file_path}")
 
 # Đổi tên file test tại đây
-load_test_data("C:\\Users\\PC\\Downloads\\TaskScheduler\\stress_test_100.json")
+load_test_data("stress_test_100.json")
 # ==========================================
 # 1. API QUẢN LÝ TASK (CRUD)
 # ==========================================
@@ -153,6 +153,7 @@ def run_scheduling(payload: ScheduleRequest):
             "status": "COMPLETED",
             "start_time": t_metric["start_time"],
             "end_time": t_metric["end_time"],
+            "slack": t_metric.get("slack", 0),
             "dependencies_satisfied": original_task["dependencies"]
         })
 
@@ -165,7 +166,7 @@ def run_scheduling(payload: ScheduleRequest):
         "total_tasks": len(tasks_to_schedule),
         "completed_tasks": len(m2_result["execution_order"]),
         "blocked_tasks": len(tasks_to_schedule) - len(m2_result["execution_order"]),
-        "makespan": m2_result["summary"]["total_execution_time"],
+        "makespan": m2_result["summary"].get("makespan", m2_result["summary"].get("total_execution_time", 0)),
         "critical_path": m2_result["critical_path"],
         "average_waiting_time": m2_result["summary"]["average_waiting_time"],
         "is_valid": True
