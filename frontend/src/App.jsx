@@ -17,7 +17,35 @@ const GANTT_MINUTE_WIDTH = 1.0;   // Tỷ lệ 1:1 chuẩn khoa học
 const GANTT_GRID_HOURS = 24;      // Giữ nguyên 24 tiếng
 export default function App() {
   // 1. Cho giỏ hàng trống lúc mới mở web
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState([
+    {
+      id: "task_1",
+      name: "Database Design",
+      priority: 8,
+      duration: 120,
+      dependencies: [],
+      status: "PENDING",
+      category: "Database",
+    },
+    {
+      id: "task_2",
+      name: "Backend API",
+      priority: 7,
+      duration: 180,
+      dependencies: ["task_1"],
+      status: "PENDING",
+      category: "Backend",
+    },
+    {
+      id: "task_3",
+      name: "Frontend Integration",
+      priority: 6,
+      duration: 90,
+      dependencies: ["task_2"],
+      status: "PENDING",
+      category: "Frontend",
+    },
+  ]);
 
   // 2. Tự động gọi API cổng 8000 để hút dữ liệu ngay khi web vừa tải xong
   useEffect(() => {
