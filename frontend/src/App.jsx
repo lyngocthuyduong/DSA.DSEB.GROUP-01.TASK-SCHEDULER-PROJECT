@@ -85,8 +85,9 @@ export default function App() {
          name: t.task_name,
          start: t.start_time,
          end: t.end_time,
+         duration: t.end_time - t.start_time,
          status: t.status,
-         slack: 0 
+         slack: t.slack ?? 0
       }));
 
       setTimeline(formattedTimeline);
@@ -116,29 +117,58 @@ export default function App() {
   // ==========================================
   // NHIỆM VỤ 2 CỦA M4: CHUẨN BỊ DATA CHO REACT FLOW (DAG THẬT)
   // ==========================================
-  const reactFlowNodes = tasks.map((task, index) => ({
-    id: task.id,
-    sourcePosition: 'right', 
-    targetPosition: 'left',  
-    position: { x: index * 250, y: 50 }, 
-    data: { 
-      label: (
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontWeight: 700 }}>{task.name}</div>
-          <div style={{ fontSize: 11, opacity: 0.9 }}>P:{task.priority} | {task.duration}m</div>
-        </div>
-      ) 
-    },
-    style: {
-      background: STATUS_COLORS[task.status] || STATUS_COLORS.PENDING,
-      color: "white",
-      border: "none",
-      borderRadius: "12px",
-      padding: "15px",
-      width: 180,
-      boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+  const taskLevels = {};
+  const taskMap = Object.fromEntries(tasks.map((task) => [task.id, task]));
+
+  const computeLevel = (task) => {
+    if (taskLevels[task.id] !== undefined) return taskLevels[task.id];
+    if (!task.dependencies || task.dependencies.length === 0) {
+      taskLevels[task.id] = 0;
+      return 0;
     }
-  }));
+
+    const depLevels = task.dependencies.map((depId) => {
+      const depTask = taskMap[depId];
+      return depTask ? computeLevel(depTask) : 0;
+    });
+
+    const level = Math.max(...depLevels) + 1;
+    taskLevels[task.id] = level;
+    return level;
+  };
+
+  tasks.forEach(computeLevel);
+  const levelCount = {};
+
+  const reactFlowNodes = tasks.map((task) => {
+    const level = taskLevels[task.id] ?? 0;
+    const indexInLevel = levelCount[level] || 0;
+    levelCount[level] = indexInLevel + 1;
+
+    return {
+      id: task.id,
+      sourcePosition: 'right',
+      targetPosition: 'left',
+      position: { x: level * 260, y: indexInLevel * 140 + 40 },
+      data: {
+        label: (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontWeight: 700 }}>{task.name}</div>
+            <div style={{ fontSize: 11, opacity: 0.9 }}>P:{task.priority} | {task.duration}m</div>
+          </div>
+        )
+      },
+      style: {
+        background: STATUS_COLORS[task.status] || STATUS_COLORS.PENDING,
+        color: "white",
+        border: "none",
+        borderRadius: "12px",
+        padding: "15px",
+        width: 180,
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+      }
+    };
+  });
 
   const reactFlowEdges = tasks.flatMap(task => 
     task.dependencies.map(dep => ({
